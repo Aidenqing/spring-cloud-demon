@@ -1,0 +1,46 @@
+#spring:
+#  cloud:
+#    consul:
+#      config:
+#        enabled: true    # 启用配置中心
+#        format: yaml     # 指定配置格式为 yaml
+#        data-key: application # 也就是 consul 中 key/value 中的 key
+#        prefix: config         # 可以理解为配置文件所在的最外层目录
+#        defaultContext: gateway  # 可以理解为 mysql_config 的上级目录
+#      discovery:
+#        register: false
+server:
+  port: 8099
+spring:
+  application:
+    name: gateway
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        instance-id: ${spring.application.name}-${spring.cloud.client.ip-address}-${server.port}
+        service-name: gateway
+        register: false
+#      config:
+#        enabled: true    # 启用配置中心
+#        format: yaml     # 指定配置格式为 yaml
+#        data-key: application # 也就是 consul 中 key/value 中的 key
+#        prefix: config         # 可以理解为配置文件所在的最外层目录
+#        defaultContext: gateway  # 可以理解为 mysql_config 的上级目录
+
+    gateway:
+      routes:
+        - id: data-service1  #请求 http://localhost:8100/data-service1/test会转发到data-producer服务，
+          uri: lb://app-order-service #在服务注册中心找服务名为 data-producer的服务，
+          predicates:
+            - Path=/data-service1/**
+          filters:
+            - StripPrefix=1
+        - id: data-service2   #请求 http://localhost:8100/data-service1/test会转发到data-producer服务，
+          uri: lb://app-user-service  #在服务注册中心找服务名为 data-producer的服务，
+          predicates:
+            - Path=/data-service2/**
+          filters:
+            - StripPrefix=1
